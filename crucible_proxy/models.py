@@ -63,7 +63,7 @@ class Stats:
     def success_rate(self) -> float:
         return (self.alive / self.total * 100) if self.total else 0.0
 
-    def __iadd__(self, other: "Stats") -> "Stats":
+    def __iadd__(self, other: Stats) -> Stats:
         # Thread-safe merge: acquire both locks in a consistent order
         # to prevent deadlock when two Stats objects merge concurrently.
         first, second = (self, other) if id(self) < id(other) else (other, self)

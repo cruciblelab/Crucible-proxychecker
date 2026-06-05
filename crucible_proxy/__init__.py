@@ -16,11 +16,11 @@ Quick start (CLI)::
 
     crucible-proxy --type socks5 --output-format json
 """
-from .models  import Anonymity, CheckResult, Proxy, ProxyType, Stats
+from .checker import check_all, check_proxy
+from .config import Config, load_config
 from .fetcher import fetch_proxies, parse_line
-from .checker import check_proxy, check_all
-from .output  import save_results, write_debug_report
-from .config  import Config, load_config
+from .models import Anonymity, CheckResult, Proxy, ProxyType, Stats
+from .output import save_results, write_debug_report
 
 __version__ = "7.0.0"
 __all__ = [

@@ -12,12 +12,12 @@ import argparse
 import sys
 import time
 
-from .checker  import check_all
-from .config   import Config, apply_logging, generate_template, load_config
-from .fetcher  import fetch_proxies
-from .models   import CheckResult, ProxyType, Stats
-from .output   import save_results, write_debug_report
-from .utils    import BANNER, C, bar
+from .checker import check_all
+from .config import Config, apply_logging, generate_template, load_config
+from .fetcher import fetch_proxies
+from .models import CheckResult, ProxyType, Stats
+from .output import save_results, write_debug_report
+from .utils import BANNER, C, bar
 
 
 # ── Result display ────────────────────────────────────────────────────────────

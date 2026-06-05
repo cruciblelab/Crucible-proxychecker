@@ -11,12 +11,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING
-
 from .models import CheckResult, ProxyType
-
-if TYPE_CHECKING:
-    from .config import Config
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +49,7 @@ def _write_txt(alive: list[CheckResult], simple_path: Path, detailed_path: Path)
     with detailed_path.open("w", encoding="utf-8") as fh:
         fh.write(f"# Generated : {datetime.now().isoformat()}\n")
         fh.write(f"# Count     : {len(alive)}\n")
-        fh.write(f"# Columns   : proxy | latency_ms | country | anonymity\n\n")
+        fh.write("# Columns   : proxy | latency_ms | country | anonymity\n\n")
         for r in alive:
             lat     = f"{r.latency_ms}ms" if r.latency_ms is not None else "  —  "
             country = r.country or "??"

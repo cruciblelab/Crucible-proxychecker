@@ -1,11 +1,9 @@
 """Tests for proxy checker logic."""
+import requests
 from unittest.mock import MagicMock, patch
 
-import pytest
-import requests
-
-from crucible_proxy.checker import _single_check, _detect_anonymity, check_proxy
-from crucible_proxy.models import Anonymity, CheckResult, Proxy, ProxyType
+from crucible_proxy.checker import _detect_anonymity, _single_check, check_proxy
+from crucible_proxy.models import Anonymity, Proxy, ProxyType
 
 PROXY = Proxy(host="1.2.3.4", port=8080, type=ProxyType.HTTP)
 
@@ -51,7 +49,6 @@ class TestDetectAnonymity:
 
     def test_elite_no_forwarding_headers(self):
         session = MagicMock()
-        # ip-api call then httpbin call
         session.get.side_effect = [
             MagicMock(**{"json.return_value": {"countryCode": "DE"}}),
             self._httpbin_resp({"Host": "httpbin.org", "Accept": "*/*"}),

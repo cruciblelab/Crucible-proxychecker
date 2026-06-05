@@ -3,7 +3,7 @@ import threading
 
 import pytest
 
-from crucible_proxy.models import Anonymity, CheckResult, Proxy, ProxyType, Stats
+from crucible_proxy.models import CheckResult, Proxy, ProxyType, Stats
 
 
 class TestProxy:

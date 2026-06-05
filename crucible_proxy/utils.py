@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-
 try:
     from colorama import Fore, Style, init as _colorama_init
     _colorama_init(autoreset=True)

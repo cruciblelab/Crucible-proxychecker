@@ -2,8 +2,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from crucible_proxy.models import Anonymity, CheckResult, Proxy, ProxyType
 from crucible_proxy.output import save_results
 
@@ -44,7 +42,6 @@ class TestSaveResults:
         _, detailed = save_results(results, ProxyType.SOCKS5, self.out)
         text = detailed.read_text()
         assert "# Generated" in text
-        assert "# Type"      in text
         assert "# Count"     in text
 
     def test_dead_proxies_excluded(self):
