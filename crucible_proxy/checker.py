@@ -3,8 +3,8 @@ from __future__ import annotations
 import ipaddress
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 

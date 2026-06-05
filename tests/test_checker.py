@@ -1,6 +1,7 @@
 """Tests for proxy checker logic."""
-import requests
 from unittest.mock import MagicMock, patch
+
+import requests
 
 from crucible_proxy.checker import _detect_anonymity, _single_check, check_proxy
 from crucible_proxy.models import Anonymity, Proxy, ProxyType

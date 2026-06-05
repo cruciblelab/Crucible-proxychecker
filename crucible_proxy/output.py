@@ -11,6 +11,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+
 from .models import CheckResult, ProxyType
 
 log = logging.getLogger(__name__)

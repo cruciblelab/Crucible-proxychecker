@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 try:
-    from colorama import Fore, Style, init as _colorama_init
+    from colorama import Fore, Style, init as _colorama_init  # noqa: I001
     _colorama_init(autoreset=True)
     _HAS_COLOR = True
 except ImportError:
