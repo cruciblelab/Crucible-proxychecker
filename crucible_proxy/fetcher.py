@@ -44,9 +44,13 @@ def parse_line(line: str, proxy_type: ProxyType) -> Proxy | None:
 
     host, _, port_str = line.rpartition(":")
     host     = host.strip()
-    port_str = port_str.strip().split()[0]
+    port_str = port_str.strip()
 
-    if not host:
+    if not host or not port_str:
+        return None
+
+    port_str = port_str.split()[0] if port_str.split() else ""
+    if not port_str:
         return None
 
     try:
