@@ -121,7 +121,8 @@ def _find_config_file() -> Path | None:
 
 def _read_env() -> dict[str, Any]:
     mapping: dict[str, Any] = {}
-    _bool = lambda v: v.lower() not in ("false", "0", "no", "off")
+    def _bool(v: str) -> bool:
+        return v.lower() not in ("false", "0", "no", "off")
 
     converters: dict[str, Any] = {
         "timeout":             int,
