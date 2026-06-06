@@ -22,7 +22,7 @@ from .fetcher import fetch_proxies, fetch_proxies_with_stats, parse_line
 from .models import Anonymity, CheckResult, Proxy, ProxyType, SourceStats, Stats
 from .output import save_results, write_debug_report
 
-__version__ = "7.0.0"
+__version__ = "7.1.0"
 __all__ = [
     # models
     "Proxy", "ProxyType", "CheckResult", "Stats", "Anonymity",

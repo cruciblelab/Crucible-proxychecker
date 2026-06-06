@@ -11,6 +11,8 @@
 
 Scrapes proxies from **67 free sources**, validates them concurrently, and reports anonymity level (Elite / Anonymous / Transparent) — all in one command or one import.
 
+**v7.1.0 new:** source health statistics + multi-endpoint anonymity detection (no more httpbin.org single point of failure).
+
 </div>
 
 ---
@@ -33,6 +35,8 @@ Scrapes proxies from **67 free sources**, validates them concurrently, and repor
   - [Filter by country / anonymity](#filter-by-country--anonymity)
   - [Save results manually](#save-results-manually)
   - [Debug report](#debug-report)
+  - [Source health statistics](#source-health-statistics)
+  - [Multiple anonymity check endpoints](#multiple-anonymity-check-endpoints)
 - [Output formats](#output-formats)
 - [Anonymity levels](#anonymity-levels)
 - [Config reference](#config-reference)
@@ -353,6 +357,44 @@ elapsed = time.perf_counter() - t0
 report_path = write_debug_report(results, ProxyType.HTTP, elapsed, Path("./debug"))
 print(f"Debug report: {report_path}")
 # JSON contains: meta stats, all alive proxies, all dead proxies + error messages
+```
+
+
+### Source health statistics
+
+```python
+from crucible_proxy import fetch_proxies_with_stats, ProxyType
+
+proxies, stats = fetch_proxies_with_stats(ProxyType.HTTP)
+
+for s in stats:
+    status = f"+{s.proxies_found}" if s.success else f"FAIL: {s.error[:40]}"
+    print(f"{s.domain:<45} {status}  ({s.elapsed_s}s)")
+
+# Filter out dead sources for next run
+good_sources = [s.url for s in stats if s.success and s.proxies_found > 0]
+```
+
+### Multiple anonymity check endpoints
+
+By default the library tries 5 httpbin-compatible endpoints in order and uses
+the first one that responds. This means `httpbin.org` downtime no longer causes
+all proxies to be classified as `UNKNOWN`.
+
+You can override the primary endpoint via env var:
+
+```bash
+export CRUCIBLE_ANONYMITY_CHECK_URL=http://my-httpbin.internal/headers
+```
+
+Or inspect the full list:
+
+```python
+from crucible_proxy.constants import ANONYMITY_CHECK_URLS
+print(ANONYMITY_CHECK_URLS)
+# ['http://httpbin.org/headers', 'https://httpbin.org/headers',
+#  'http://httpbingo.org/headers', 'https://httpbingo.org/headers',
+#  'http://eu.httpbin.org/headers']
 ```
 
 ---

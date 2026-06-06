@@ -5,14 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [7.0.1] — 2026-06-06
-
-### Fixed
-- `parse_line` in `fetcher.py` raised `IndexError` on empty port strings from certain proxy sources — now returns `None` safely
-
----
-
-## [7.0.0] — 2026-06-06
+## [7.0.0] — 2025-06-06
 
 ### Added
 - **Unified config system** (`crucible_proxy.config`): three-tier priority (CLI → env vars → TOML file → defaults)
@@ -43,7 +36,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [6.0.0] — 2026-06-05
+## [6.0.0] — 2025-06-05
 
 ### Added
 - Multi-source fetching with deduplication
