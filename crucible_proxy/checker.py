@@ -107,32 +107,37 @@ def _detect_anonymity(
     except Exception:
         pass  # country stays None; we still try header detection
 
-    # ── Step 2: header-based anonymity detection ───────────────────────────────
-    try:
-        resp = session.get(
-            ANONYMITY_CHECK_URLS,
-            proxies=proxy.as_requests_dict(),
-            timeout=timeout,
-        )
-        headers_seen: dict[str, str] = {
-            k.lower(): v for k, v in resp.json().get("headers", {}).items()
-        }
-        forwarding = _FORWARDED_HEADERS & headers_seen.keys()
-
-        if not forwarding:
-            anonymity = Anonymity.ELITE
-        else:
-            # Transparent: our real IP is visible in a forwarding header
-            real_ip_leaked = any(
-                _is_ip_address(part)
-                for k, v in headers_seen.items()
-                if k in forwarding
-                for part in v.split(",")
+    # ── Step 2: header-based anonymity detection (tries multiple endpoints) ──────
+    anon_detected = False
+    for anon_url in ANONYMITY_CHECK_URLS:
+        try:
+            resp = session.get(
+                anon_url,
+                proxies=proxy.as_requests_dict(),
+                timeout=timeout,
             )
-            anonymity = Anonymity.TRANSPARENT if real_ip_leaked else Anonymity.ANONYMOUS
+            resp.raise_for_status()
+            headers_seen: dict[str, str] = {
+                k.lower(): v for k, v in resp.json().get("headers", {}).items()
+            }
+            forwarding = _FORWARDED_HEADERS & headers_seen.keys()
+            if not forwarding:
+                anonymity = Anonymity.ELITE
+            else:
+                real_ip_leaked = any(
+                    _is_ip_address(part)
+                    for k, v in headers_seen.items()
+                    if k in forwarding
+                    for part in v.split(",")
+                )
+                anonymity = Anonymity.TRANSPARENT if real_ip_leaked else Anonymity.ANONYMOUS
+            anon_detected = True
+            break
+        except Exception:
+            continue
 
-    except Exception:
-        # Fall back to ip-api proxy flag if the headers endpoint is unreachable
+    if not anon_detected:
+        # All anonymity endpoints failed — fall back to ip-api proxy flag
         try:
             resp2 = session.get(
                 IP_INFO_URL,
