@@ -12,7 +12,7 @@ import argparse
 import sys
 import time
 
-from .checker import check_all
+from .checker import check_all  # noqa: I001
 from .config import Config, apply_logging, generate_template, load_config
 from .fetcher import fetch_proxies
 from .models import CheckResult, ProxyType, Stats

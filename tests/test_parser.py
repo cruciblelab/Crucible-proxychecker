@@ -1,6 +1,6 @@
 """Tests for proxy line parser."""
 import pytest
-from crucible_proxy.fetcher import parse_line
+from crucible_proxy.fetcher import parse_line  # noqa: I001
 from crucible_proxy.models import ProxyType
 
 
