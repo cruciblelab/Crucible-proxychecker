@@ -31,18 +31,18 @@ ANONYMITY_CHECK_URLS: list[str] = [
 ANONYMITY_CHECK_URL: str = ANONYMITY_CHECK_URLS[0]
 
 # ip-api returns country and anonymity info
-IP_INFO_URL = "http://ip-api.com/json/"
+IP_INFO_URL = "http://ip-api.com/json/?fields=status,countryCode,country,city,as,isp,proxy,hosting"
 
 PROXY_SOURCES: dict[str, list[str]] = {
     "http": [
-        # ── API tabanlı ──────────────────────────────────────────────────────
+        # ── API-based ──────────────────────────────────────────────────────
         "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all",
         "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=protocolipport&format=text&timeout=10000",
         "https://proxylist.geonode.com/api/proxy-list?protocols=http&limit=500&page=1&sort_by=lastChecked&sort_type=desc",
         "https://www.proxy-list.download/api/v1/get?type=http",
         "https://raw.githubusercontent.com/fate0/proxylist/master/proxy.list",
 
-        # ── GitHub repo listeleri ────────────────────────────────────────────
+        # ── GitHub repo lists ────────────────────────────────────────────
         "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt",
         "https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt",
         "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
@@ -62,13 +62,13 @@ PROXY_SOURCES: dict[str, list[str]] = {
     ],
 
     "https": [
-        # ── API tabanlı ──────────────────────────────────────────────────────
+        # ── API-based ──────────────────────────────────────────────────────
         "https://api.proxyscrape.com/v2/?request=getproxies&protocol=https&timeout=10000&country=all",
         "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=https&proxy_format=protocolipport&format=text&timeout=10000",
         "https://proxylist.geonode.com/api/proxy-list?protocols=https&limit=500&page=1&sort_by=lastChecked&sort_type=desc",
         "https://www.proxy-list.download/api/v1/get?type=https",
 
-        # ── GitHub repo listeleri ────────────────────────────────────────────
+        # ── GitHub repo lists ────────────────────────────────────────────
         "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
         "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies_anonymous/http.txt",
         "https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-https.txt",
@@ -80,13 +80,13 @@ PROXY_SOURCES: dict[str, list[str]] = {
     ],
 
     "socks4": [
-        # ── API tabanlı ──────────────────────────────────────────────────────
+        # ── API-based ──────────────────────────────────────────────────────
         "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks4",
         "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks4&proxy_format=protocolipport&format=text&timeout=10000",
         "https://proxylist.geonode.com/api/proxy-list?protocols=socks4&limit=500&page=1&sort_by=lastChecked&sort_type=desc",
         "https://www.proxy-list.download/api/v1/get?type=socks4",
 
-        # ── GitHub repo listeleri ────────────────────────────────────────────
+        # ── GitHub repo lists ────────────────────────────────────────────
         "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt",
         "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks4.txt",
         "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks4.txt",
@@ -102,13 +102,13 @@ PROXY_SOURCES: dict[str, list[str]] = {
     ],
 
     "socks5": [
-        # ── API tabanlı ──────────────────────────────────────────────────────
+        # ── API-based ──────────────────────────────────────────────────────
         "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5",
         "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolipport&format=text&timeout=10000",
         "https://proxylist.geonode.com/api/proxy-list?protocols=socks5&limit=500&page=1&sort_by=lastChecked&sort_type=desc",
         "https://www.proxy-list.download/api/v1/get?type=socks5",
 
-        # ── GitHub repo listeleri ────────────────────────────────────────────
+        # ── GitHub repo lists ────────────────────────────────────────────
         "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt",
         "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks5.txt",
         "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",

@@ -34,6 +34,9 @@ def _result_to_dict(r: CheckResult) -> dict:
         "type":       r.proxy.type.value,
         "latency_ms": r.latency_ms,
         "country":    r.country,
+        "city":       r.city,
+        "asn":        r.asn,
+        "isp":        r.isp,
         "anonymity":  r.anonymity.value,
         "check_url":  r.check_url,
     }
@@ -70,7 +73,7 @@ def _write_json(alive: list[CheckResult], detailed_path: Path) -> None:
 
 
 def _write_csv(alive: list[CheckResult], detailed_path: Path) -> None:
-    fieldnames = ["proxy", "host", "port", "type", "latency_ms", "country", "anonymity", "check_url"]
+    fieldnames = ["proxy", "host", "port", "type", "latency_ms", "country", "city", "asn", "isp", "anonymity", "check_url"]
     with detailed_path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()

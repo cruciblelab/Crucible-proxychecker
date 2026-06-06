@@ -16,6 +16,10 @@ Scrapes proxies from **67 free sources**, validates them concurrently, and repor
 
 **v7.2.0 new:** proxy cache (skip re-checking already-validated proxies) + coverage reporting.
 
+**v7.3.0 new:** `Session` — a one-object, fully-configurable API. No glue code, configure everything declaratively (or from JSON) and call `.run()`.
+
+**v7.4.0 new:** Session shortcuts (`live_only`, `to_list`, `best`, `fastest`), callbacks (`on_result`/`on_alive`/`on_progress`), async (`run_async`), export to Clash/v2ray/Shadowsocks, and city/ASN filters.
+
 </div>
 
 ---
@@ -29,6 +33,7 @@ Scrapes proxies from **67 free sources**, validates them concurrently, and repor
   - [Environment variables](#environment-variables)
   - [Config file](#config-file)
 - [Library Usage](#library-usage)
+  - [Session API (easiest)](#session-api-easiest)
   - [Quick start](#quick-start)
   - [Custom config](#custom-config-programmatic)
   - [Async-friendly pattern](#async-friendly-pattern)
@@ -177,6 +182,157 @@ anonymity_check_url = "http://my-httpbin.internal/headers"
 ---
 
 ## Library Usage
+
+### Session API (easiest)
+
+The `Session` class wraps fetching, validation, filtering, and saving into a
+single configurable object. Ideal if you don't want to wire functions together:
+
+```python
+from crucible_proxy import Session
+
+session = Session(
+    types         = ["http", "socks5"],   # which protocols
+    workers       = 300,                   # concurrency
+    timeout       = 5,                     # per-request seconds
+    verify_twice  = False,                 # second-pass confirmation
+    source_timeout= 10,                    # seconds per source URL
+    max_sources   = 5,                     # cap sources per type (None = all)
+
+    # filters
+    elite         = True,                  # ELITE only
+    max_latency   = 1000,                  # drop slow proxies (ms)
+    min_score     = 70,                    # quality score 0-100
+    countries     = ["US", "DE", "TR"],    # allow-list
+    exclude_ports = [8080],                # deny-list
+
+    # output
+    save          = True,
+    output_format = "json",                # txt | json | csv
+    output_dir    = "./proxies",
+)
+
+results = session.run()
+# results -> {"http": [CheckResult, ...], "socks5": [...]}
+
+for proto, proxies in results.items():
+    print(f"{proto}: {len(proxies)} proxies passed the filters")
+```
+
+#### From a dict or JSON file
+
+```python
+from crucible_proxy import Session
+
+# From a dict
+session = Session.from_dict({
+    "types":       ["socks5"],
+    "workers":     200,
+    "elite":       True,
+    "max_latency": 1500,
+})
+
+# From a JSON config file
+session = Session.from_json("proxy_config.json")
+
+# Save the current config back to JSON
+session.save_config("proxy_config.json")
+```
+
+Example `proxy_config.json`:
+
+```json
+{
+  "types":         ["http", "socks5"],
+  "workers":       300,
+  "timeout":       5,
+  "elite":         true,
+  "max_latency":   1000,
+  "countries":     ["US", "DE"],
+  "output_format": "json",
+  "output_dir":    "./proxies"
+}
+```
+
+#### Detailed report
+
+```python
+report = session.run_with_stats()
+for proto, info in report.items():
+    print(f"{proto}: {info['alive']}/{info['total']} alive, "
+          f"{info['matched']} matched filters, {info['elapsed_s']}s")
+    for s in info["source_stats"]:
+        print(f"  {s.domain}: +{s.proxies_found}" if s.success else f"  {s.domain}: FAIL")
+```
+
+#### Shortcut methods
+
+```python
+session = Session(types=["http", "socks5"], elite=True, max_latency=1000)
+
+flat    = session.live_only()   # [CheckResult, ...] across all types
+strings = session.to_list()     # ["1.2.3.4:8080", ...]
+top10   = session.best(10)      # top 10 by quality score (0-100)
+fast10  = session.fastest(10)   # 10 lowest-latency proxies
+```
+
+#### Callbacks (advanced)
+
+Plug in your own functions — full control without writing the loop yourself:
+
+```python
+def on_alive(r):
+    print(f"LIVE {r.proxy}  {r.country}/{r.city}  {r.latency_ms}ms  {r.anonymity.value}")
+
+def on_progress(checked, total):
+    print(f"\r{checked}/{total}", end="")
+
+session = Session(
+    types       = ["http"],
+    on_alive    = on_alive,
+    on_progress = on_progress,
+)
+session.run()
+```
+
+#### Async
+
+```python
+import asyncio
+from crucible_proxy import Session
+
+async def main():
+    results = await Session(types=["http"]).run_async()
+    print(sum(len(v) for v in results.values()), "proxies found")
+
+asyncio.run(main())
+```
+
+#### Export to proxy-client formats
+
+```python
+session = Session(types=["socks5"], elite=True)
+session.run()
+
+session.export("clash",       "proxies-clash.yaml")   # Clash YAML
+session.export("v2ray",       "proxies-v2ray.json")   # v2ray outbounds JSON
+session.export("shadowsocks", "proxies-ss.txt")       # ss:// list
+session.export("txt",         "proxies.txt")          # plain host:port
+
+# Or get the string directly (no path)
+yaml_str = session.export("clash")
+```
+
+#### City / ASN filtering
+
+```python
+session = Session(
+    types        = ["http"],
+    countries    = ["DE", "US"],
+    cities       = ["Berlin", "Frankfurt"],   # substring match
+    exclude_asn  = ["AS9999"],                # drop specific networks
+)
+```
 
 ### Quick start
 

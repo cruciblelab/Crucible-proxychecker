@@ -21,8 +21,9 @@ from .config import Config, load_config
 from .fetcher import fetch_proxies, fetch_proxies_with_stats, parse_line
 from .models import Anonymity, CheckResult, Proxy, ProxyCache, ProxyType, SourceStats, Stats
 from .output import save_results, write_debug_report
+from .session import Session
 
-__version__ = "7.2.0"
+__version__ = "7.4.0"
 __all__ = [
     # models
     "Proxy", "ProxyType", "CheckResult", "Stats", "Anonymity",
@@ -36,4 +37,6 @@ __all__ = [
     "save_results", "write_debug_report",
     # config
     "Config", "load_config",
+    # session (high-level API)
+    "Session",
 ]

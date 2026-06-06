@@ -79,7 +79,7 @@ def _detect_anonymity(
     proxy: Proxy,
     session: requests.Session,
     timeout: int = TIMEOUT_SEC,
-) -> tuple[str | None, Anonymity]:
+) -> tuple[dict[str, str | None], Anonymity]:
     """
     Determine country and true anonymity level.
 
@@ -92,20 +92,23 @@ def _detect_anonymity(
     Uses ip-api for country + proxy/hosting flags, and ANONYMITY_CHECK_URL
     (/headers endpoint) for header-level anonymity detection.
     """
-    country: str | None = None
+    geo: dict[str, str | None] = {"country": None, "city": None, "asn": None, "isp": None}
     anonymity = Anonymity.UNKNOWN
 
-    # ── Step 1: ip-api for country ────────────────────────────────────────────
+    # ── Step 1: ip-api for country / city / ASN / ISP ─────────────────────────
     try:
         resp = session.get(
             IP_INFO_URL,
             proxies=proxy.as_requests_dict(),
             timeout=timeout,
         )
-        data    = resp.json()
-        country = data.get("countryCode") or data.get("country")
+        data = resp.json()
+        geo["country"] = data.get("countryCode") or data.get("country")
+        geo["city"]    = data.get("city") or None
+        geo["asn"]     = data.get("as") or None
+        geo["isp"]     = data.get("isp") or None
     except Exception:
-        pass  # country stays None; we still try header detection
+        pass  # geo stays empty; we still try header detection
 
     # ── Step 2: header-based anonymity detection (tries multiple endpoints) ──────
     anon_detected = False
@@ -152,7 +155,7 @@ def _detect_anonymity(
         except Exception:
             pass
 
-    return country, anonymity
+    return geo, anonymity
 
 
 def check_proxy(
@@ -217,13 +220,16 @@ def check_proxy(
             if lat2 is not None and latency is not None:
                 latency = round((latency + lat2) / 2, 1)
 
-        country, anonymity = _detect_anonymity(proxy, session, timeout=timeout)
+        geo, anonymity = _detect_anonymity(proxy, session, timeout=timeout)
 
         return CheckResult(
             proxy=proxy,
             alive=True,
             latency_ms=latency,
-            country=country,
+            country=geo["country"],
+            city=geo["city"],
+            asn=geo["asn"],
+            isp=geo["isp"],
             anonymity=anonymity,
             check_url=active_url,
         )

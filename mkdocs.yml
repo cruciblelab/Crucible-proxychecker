@@ -1,0 +1,45 @@
+site_name: Crucible Proxychecker
+site_description: Fast, multi-source proxy scraper and validator
+site_url: https://cruciblelab.github.io/Crucible-proxychecker/
+repo_url: https://github.com/cruciblelab/Crucible-proxychecker
+repo_name: cruciblelab/Crucible-proxychecker
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: cyan
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - scheme: default
+      primary: cyan
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+
+nav:
+  - Home: index.md
+  - Quick Start: quickstart.md
+  - Session API: session.md
+  - CLI: cli.md
+  - Export Formats: export.md
+  - API Reference: api.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search

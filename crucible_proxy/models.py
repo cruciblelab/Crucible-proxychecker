@@ -39,6 +39,9 @@ class CheckResult:
     alive:      bool
     latency_ms: float | None   = None
     country:    str   | None   = None
+    city:       str   | None   = None
+    asn:        str   | None   = None
+    isp:        str   | None   = None
     anonymity:  Anonymity      = Anonymity.UNKNOWN
     error:      str   | None   = None
     check_url:  str   | None   = None

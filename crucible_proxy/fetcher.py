@@ -133,3 +133,41 @@ def fetch_proxies_with_stats(proxy_type: ProxyType) -> tuple[list[Proxy], list[S
                 stats.append(src_stat)
 
     return proxies, stats
+
+def fetch_from_source_manager_compat(
+    urls: list[str],
+    proxy_type: ProxyType,
+    source_timeout: int = 20,
+) -> tuple[list[Proxy], list[SourceStats]]:
+    """
+    Fetch proxies from an explicit list of URLs with per-source health stats.
+    Used internally by the Session API.
+    """
+    import time as _time
+    seen:    set[str]          = set()
+    proxies: list[Proxy]       = []
+    stats:   list[SourceStats] = []
+
+    with _make_session() as session:
+        for url in urls:
+            src = SourceStats(url=url)
+            t0  = _time.perf_counter()
+            try:
+                resp = session.get(url, timeout=source_timeout)
+                resp.raise_for_status()
+                before = len(proxies)
+                for line in resp.text.splitlines():
+                    p = parse_line(line, proxy_type)
+                    if p and str(p) not in seen:
+                        seen.add(str(p))
+                        proxies.append(p)
+                src.success       = True
+                src.proxies_found = len(proxies) - before
+            except Exception as exc:
+                src.success = False
+                src.error   = str(exc)
+            finally:
+                src.elapsed_s = round(_time.perf_counter() - t0, 2)
+                stats.append(src)
+
+    return proxies, stats
