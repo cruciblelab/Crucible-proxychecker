@@ -18,7 +18,7 @@ from .constants import (
     TIMEOUT_SEC,
     VERIFY_TWICE,
 )
-from .models import Anonymity, CheckResult, Proxy
+from .models import Anonymity, CheckResult, Proxy, ProxyCache
 
 log = logging.getLogger(__name__)
 
@@ -236,16 +236,42 @@ def check_all(
     max_workers: int = MAX_WORKERS,
     timeout: int = TIMEOUT_SEC,
     verify_twice: bool = VERIFY_TWICE,
+    cache: ProxyCache | None = None,
 ) -> Iterator[CheckResult]:
-    """Validate proxies in parallel; yield results as they complete."""
-    workers = min(max_workers, len(proxies)) if proxies else 1
+    """
+    Validate proxies in parallel; yield results as they complete.
+
+    Parameters
+    ----------
+    cache:
+        Optional :class:`ProxyCache` instance.  When provided, proxies that
+        have already been checked are returned from the cache instantly and
+        skipped in the thread pool — avoiding redundant network calls.
+    """
+    # Serve cached hits immediately; collect the rest for network checks
+    unchecked: list[Proxy] = []
+    for proxy in proxies:
+        if cache is not None:
+            cached = cache.get(proxy)
+            if cached is not None:
+                yield cached
+                continue
+        unchecked.append(proxy)
+
+    if not unchecked:
+        return
+
+    workers = min(max_workers, len(unchecked)) if unchecked else 1
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = {
             executor.submit(check_proxy, p, verify_twice=verify_twice, timeout=timeout): p
-            for p in proxies
+            for p in unchecked
         }
         for future in as_completed(futures):
             try:
-                yield future.result()
+                result = future.result()
+                if cache is not None:
+                    cache.set(result)
+                yield result
             except Exception as exc:
                 log.error("Unexpected error checking %s: %s", futures[future], exc)

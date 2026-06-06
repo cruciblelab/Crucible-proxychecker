@@ -19,17 +19,17 @@ Quick start (CLI)::
 from .checker import check_all, check_proxy
 from .config import Config, load_config
 from .fetcher import fetch_proxies, fetch_proxies_with_stats, parse_line
-from .models import Anonymity, CheckResult, Proxy, ProxyType, SourceStats, Stats
+from .models import Anonymity, CheckResult, Proxy, ProxyCache, ProxyType, SourceStats, Stats
 from .output import save_results, write_debug_report
 
-__version__ = "7.1.0"
+__version__ = "7.2.0"
 __all__ = [
     # models
     "Proxy", "ProxyType", "CheckResult", "Stats", "Anonymity",
     # fetcher
     "fetch_proxies", "fetch_proxies_with_stats", "parse_line",
     # models (extras)
-    "SourceStats",
+    "SourceStats", "ProxyCache",
     # checker
     "check_proxy", "check_all",
     # output

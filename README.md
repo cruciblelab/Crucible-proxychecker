@@ -8,10 +8,13 @@
 [![Python](https://img.shields.io/pypi/pyversions/crucible-proxychecker.svg)](https://pypi.org/project/crucible-proxychecker/)
 [![CI](https://github.com/cruciblelab/Crucible-proxychecker/actions/workflows/ci.yml/badge.svg)](https://github.com/cruciblelab/Crucible-proxychecker/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Coverage](https://codecov.io/gh/cruciblelab/Crucible-proxychecker/branch/main/graph/badge.svg)](https://codecov.io/gh/cruciblelab/Crucible-proxychecker)
 
 Scrapes proxies from **67 free sources**, validates them concurrently, and reports anonymity level (Elite / Anonymous / Transparent) — all in one command or one import.
 
 **v7.1.0 new:** source health statistics + multi-endpoint anonymity detection (no more httpbin.org single point of failure).
+
+**v7.2.0 new:** proxy cache (skip re-checking already-validated proxies) + coverage reporting.
 
 </div>
 
@@ -35,11 +38,13 @@ Scrapes proxies from **67 free sources**, validates them concurrently, and repor
   - [Filter by country / anonymity](#filter-by-country--anonymity)
   - [Save results manually](#save-results-manually)
   - [Debug report](#debug-report)
+  - [Proxy cache](#proxy-cache)
   - [Source health statistics](#source-health-statistics)
   - [Multiple anonymity check endpoints](#multiple-anonymity-check-endpoints)
 - [Output formats](#output-formats)
 - [Anonymity levels](#anonymity-levels)
 - [Config reference](#config-reference)
+- [Examples](#examples)
 - [Contributing](#contributing)
 
 ---
@@ -360,6 +365,33 @@ print(f"Debug report: {report_path}")
 ```
 
 
+### Proxy cache
+
+Avoid re-checking the same proxy twice within a session using `ProxyCache`:
+
+```python
+from crucible_proxy import ProxyCache, fetch_proxies, check_all, ProxyType
+
+cache = ProxyCache()
+
+# First run — checks all proxies over the network
+proxies = fetch_proxies(ProxyType.HTTP)
+results = list(check_all(proxies, cache=cache))
+print(f"Checked {len(proxies)} proxies, cache now has {len(cache)} entries")
+
+# Second run with the same list — cached proxies returned instantly
+results2 = list(check_all(proxies, cache=cache))
+# No network calls made for already-checked proxies
+
+# Clear the cache when you want fresh results
+cache.clear()
+```
+
+The cache is type-aware: the same IP address cached as `HTTP` will still be
+checked fresh as `SOCKS5`.
+
+---
+
 ### Source health statistics
 
 ```python
@@ -495,6 +527,44 @@ Written in addition to normal output, includes **dead proxies and error messages
 | `log_level` | `CRUCIBLE_LOG_LEVEL` | `--log-level` | `WARNING` | Log verbosity |
 | `log_file` | `CRUCIBLE_LOG_FILE` | `--log-file` | — | Log file path |
 | `debug_report` | `CRUCIBLE_DEBUG_REPORT` | `--debug-report` | `false` | Write JSON debug report |
+
+---
+
+## Examples
+
+The [`examples/`](examples/) directory contains ready-to-run scripts:
+
+### `proxy_suite.py` — Ultimate Proxy Suite
+
+A feature-rich CLI application built on top of this library:
+
+```bash
+pip install crucible-proxychecker
+python examples/proxy_suite.py
+```
+
+**Features:**
+- Interactive menu + full CLI mode (`--all`, `--types`, `--elite-only` …)
+- Configurable source count per type (`--max-sources 3`)
+- Per-source timeout (`--src-timeout 10`)
+- Advanced filtering: country, latency, anonymity, score, port, regex
+- Proxy quality scoring (0–100, S/A/B/C/D/F grades)
+- Live progress bar + colored histograms
+- Re-check mode (`--recheck saved.txt`)
+- Single proxy verify (`--verify 1.2.3.4:8080`)
+- Bulk verify from file (`--bulk list.txt`)
+- Rotation simulator (`--rotation`)
+- Session archive (JSON) + debug report
+- Multi-type duplicate analysis
+
+```bash
+# Examples
+python examples/proxy_suite.py --all --elite-only --max-lat 1000
+python examples/proxy_suite.py --types http socks5 --format json
+python examples/proxy_suite.py --all --max-sources 3 --src-timeout 10
+python examples/proxy_suite.py --verify 1.2.3.4:8080 --type http
+python examples/proxy_suite.py --list-sources
+```
 
 ---
 

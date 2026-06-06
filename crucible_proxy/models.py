@@ -89,3 +89,50 @@ class SourceStats:
             return self.url.split("/")[2]
         except IndexError:
             return self.url
+
+@dataclass
+class ProxyCache:
+    """
+    Thread-safe in-memory cache for CheckResult objects.
+
+    Prevents re-checking the same proxy within a session.
+    Key: "{host}:{port}:{type}" — type-aware so the same IP
+    can be cached separately for HTTP and SOCKS5.
+
+    Example
+    -------
+    >>> cache = ProxyCache()
+    >>> proxies, _ = fetch_proxies_with_stats(ProxyType.HTTP)
+    >>> results = list(check_all(proxies, cache=cache))
+    >>> # Second call skips already-checked proxies instantly
+    >>> results2 = list(check_all(proxies, cache=cache))
+    """
+    _store: dict[str, CheckResult] = field(default_factory=dict, repr=False)
+    _lock:  Lock                   = field(default_factory=Lock,  repr=False)
+
+    def _key(self, proxy: Proxy) -> str:
+        return f"{proxy.host}:{proxy.port}:{proxy.type.value}"
+
+    def get(self, proxy: Proxy) -> CheckResult | None:
+        """Return cached result or None if not cached."""
+        with self._lock:
+            return self._store.get(self._key(proxy))
+
+    def set(self, result: CheckResult) -> None:
+        """Store a result in the cache."""
+        with self._lock:
+            self._store[self._key(result.proxy)] = result
+
+    def clear(self) -> None:
+        """Evict all cached results."""
+        with self._lock:
+            self._store.clear()
+
+    def __len__(self) -> int:
+        with self._lock:
+            return len(self._store)
+
+    @property
+    def hit_count(self) -> int:
+        """Number of cached entries."""
+        return len(self)
