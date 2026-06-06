@@ -26,10 +26,11 @@ import json
 import time
 from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .checker import check_all
-from .constants import MAX_WORKERS, PROXY_SOURCES, TIMEOUT_SEC
+from .constants import PROXY_SOURCES
 from .fetcher import fetch_from_source_manager_compat, parse_line
 from .models import (
     Anonymity,
@@ -130,9 +131,9 @@ class Session:
     use_cache:     bool   = True
 
     # ── Callbacks (advanced — bring your own functions) ─────────────────────────
-    on_result:    "Callable[[CheckResult], None] | None" = None  # called for every checked proxy
-    on_alive:     "Callable[[CheckResult], None] | None" = None  # called only for live proxies
-    on_progress:  "Callable[[int, int], None]      | None" = None  # called with (checked, total)
+    on_result:    Callable[[CheckResult], None] | None = None  # called for every checked proxy
+    on_alive:     Callable[[CheckResult], None] | None = None  # called only for live proxies
+    on_progress:  Callable[[int, int], None]      | None = None  # called with (checked, total)
 
     # ── Internal ────────────────────────────────────────────────────────────────
     _cache: ProxyCache | None = field(default=None, repr=False)
@@ -465,13 +466,20 @@ def score(result: CheckResult) -> float:
         Anonymity.TRANSPARENT: -15,
     }.get(result.anonymity, 0)
     lat = result.latency_ms or 9999
-    if   lat <  150: s += 25
-    elif lat <  300: s += 20
-    elif lat <  600: s += 15
-    elif lat < 1000: s += 10
-    elif lat < 2000: s += 5
-    elif lat < 4000: s += 2
-    else:            s -= 5
+    if lat < 150:
+        s += 25
+    elif lat < 300:
+        s += 20
+    elif lat < 600:
+        s += 15
+    elif lat < 1000:
+        s += 10
+    elif lat < 2000:
+        s += 5
+    elif lat < 4000:
+        s += 2
+    else:
+        s -= 5
     if result.country and result.country != "??":
         s += 3
     return max(0.0, min(100.0, round(s, 1)))
