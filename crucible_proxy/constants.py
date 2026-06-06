@@ -16,12 +16,19 @@ CHECK_URLS: list[str] = [
     "http://ip-api.com/json/",
 ]
 
-# Override via env var to use a self-hosted or alternative headers-echo service.
-# Must return JSON with a top-level "headers" object (httpbin /headers format).
-ANONYMITY_CHECK_URL: str = os.environ.get(
-    "ANONYMITY_CHECK_URL",
-    "http://httpbin.org/headers",
-)
+# Multiple anonymity-check endpoints tried in order until one responds.
+# All must return JSON with a top-level "headers" object (httpbin /headers format).
+# Override the primary via CRUCIBLE_ANONYMITY_CHECK_URL env var.
+ANONYMITY_CHECK_URLS: list[str] = [
+    os.environ.get("CRUCIBLE_ANONYMITY_CHECK_URL", "http://httpbin.org/headers"),
+    "https://httpbin.org/headers",
+    "http://httpbingo.org/headers",
+    "https://httpbingo.org/headers",
+    "http://eu.httpbin.org/headers",
+]
+
+# Primary URL — kept for backwards compatibility
+ANONYMITY_CHECK_URL: str = ANONYMITY_CHECK_URLS[0]
 
 # ip-api returns country and anonymity info
 IP_INFO_URL = "http://ip-api.com/json/"

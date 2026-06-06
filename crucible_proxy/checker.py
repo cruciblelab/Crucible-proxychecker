@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 from .constants import (
-    ANONYMITY_CHECK_URL,
+    ANONYMITY_CHECK_URLS,
     CHECK_RETRIES,
     CHECK_URLS,
     IP_INFO_URL,
@@ -110,7 +110,7 @@ def _detect_anonymity(
     # ── Step 2: header-based anonymity detection ───────────────────────────────
     try:
         resp = session.get(
-            ANONYMITY_CHECK_URL,
+            ANONYMITY_CHECK_URLS,
             proxies=proxy.as_requests_dict(),
             timeout=timeout,
         )

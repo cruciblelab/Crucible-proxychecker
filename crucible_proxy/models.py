@@ -73,3 +73,19 @@ class Stats:
                 self.alive += other.alive
                 self.dead  += other.dead
         return self
+
+@dataclass
+class SourceStats:
+    """Health statistics for a single proxy source URL."""
+    url:        str
+    success:    bool         = False
+    proxies_found: int       = 0
+    error:      str | None   = None
+    elapsed_s:  float        = 0.0
+
+    @property
+    def domain(self) -> str:
+        try:
+            return self.url.split("/")[2]
+        except IndexError:
+            return self.url

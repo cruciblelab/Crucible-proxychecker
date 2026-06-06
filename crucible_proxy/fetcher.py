@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .constants import PROXY_SOURCES, TIMEOUT_SEC
-from .models import Proxy, ProxyType
+from .models import Proxy, ProxyType, SourceStats
 
 log = logging.getLogger(__name__)
 
@@ -44,13 +44,9 @@ def parse_line(line: str, proxy_type: ProxyType) -> Proxy | None:
 
     host, _, port_str = line.rpartition(":")
     host     = host.strip()
-    port_str = port_str.strip()
+    port_str = port_str.strip().split()[0]
 
-    if not host or not port_str:
-        return None
-
-    port_str = port_str.split()[0] if port_str.split() else ""
-    if not port_str:
+    if not host:
         return None
 
     try:
@@ -88,3 +84,52 @@ def fetch_proxies(proxy_type: ProxyType) -> list[Proxy]:
                         proxies.append(proxy)
 
     return proxies
+
+def fetch_proxies_with_stats(proxy_type: ProxyType) -> tuple[list[Proxy], list[SourceStats]]:
+    """
+    Fetch proxies from all configured sources and return per-source health stats.
+
+    Returns
+    -------
+    (proxies, source_stats)
+        proxies:      Deduplicated list of Proxy objects.
+        source_stats: One SourceStats per URL showing success/failure and proxy count.
+
+    Example
+    -------
+    >>> proxies, stats = fetch_proxies_with_stats(ProxyType.HTTP)
+    >>> for s in stats:
+    ...     print(s.domain, s.proxies_found, "OK" if s.success else s.error)
+    """
+    import time as _time
+    sources  = PROXY_SOURCES.get(proxy_type.value, [])
+    seen:    set[str]          = set()
+    proxies: list[Proxy]       = []
+    stats:   list[SourceStats] = []
+
+    with _make_session() as session:
+        for url in sources:
+            src_stat = SourceStats(url=url)
+            t0       = _time.perf_counter()
+            try:
+                resp = session.get(url, timeout=TIMEOUT_SEC)
+                resp.raise_for_status()
+                before = len(proxies)
+                for line in resp.text.splitlines():
+                    proxy = parse_line(line, proxy_type)
+                    if proxy:
+                        key = str(proxy)
+                        if key not in seen:
+                            seen.add(key)
+                            proxies.append(proxy)
+                src_stat.success       = True
+                src_stat.proxies_found = len(proxies) - before
+            except Exception as exc:
+                src_stat.success = False
+                src_stat.error   = str(exc)
+                log.warning("Source unavailable [%s]: %s", url, exc)
+            finally:
+                src_stat.elapsed_s = round(_time.perf_counter() - t0, 2)
+                stats.append(src_stat)
+
+    return proxies, stats
