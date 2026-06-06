@@ -54,9 +54,9 @@ class TestDetectAnonymity:
             MagicMock(**{"json.return_value": {"countryCode": "DE"}}),
             self._httpbin_resp({"Host": "httpbin.org", "Accept": "*/*"}),
         ]
-        country, anon = _detect_anonymity(PROXY, session)
-        assert anon    == Anonymity.ELITE
-        assert country == "DE"
+        geo, anon = _detect_anonymity(PROXY, session)
+        assert anon         == Anonymity.ELITE
+        assert geo["country"] == "DE"
 
     def test_anonymous_with_via_header(self):
         session = MagicMock()
@@ -79,9 +79,9 @@ class TestDetectAnonymity:
     def test_unknown_on_total_failure(self):
         session = MagicMock()
         session.get.side_effect = Exception("network down")
-        country, anon = _detect_anonymity(PROXY, session)
-        assert anon    == Anonymity.UNKNOWN
-        assert country is None
+        geo, anon = _detect_anonymity(PROXY, session)
+        assert anon           == Anonymity.UNKNOWN
+        assert geo["country"] is None
 
 
 class TestCheckProxy:
@@ -93,7 +93,7 @@ class TestCheckProxy:
         with patch("crucible_proxy.checker._single_check") as mock_check, \
              patch("crucible_proxy.checker._detect_anonymity") as mock_anon:
             mock_check.return_value = (True, 120.0, None)
-            mock_anon.return_value  = ("DE", Anonymity.ELITE)
+            mock_anon.return_value  = ({"country": "DE", "city": None, "asn": None, "isp": None}, Anonymity.ELITE)
 
             result = check_proxy(PROXY, verify_twice=False, check_retries=1)
 
@@ -145,7 +145,7 @@ class TestCheckProxy:
         MockSession.return_value = session
 
         with patch("crucible_proxy.checker._single_check") as mock_check, \
-             patch("crucible_proxy.checker._detect_anonymity", return_value=(None, Anonymity.UNKNOWN)):
+             patch("crucible_proxy.checker._detect_anonymity", return_value=({"country": None, "city": None, "asn": None, "isp": None}, Anonymity.UNKNOWN)):
             mock_check.return_value = (True, 50.0, None)
             check_proxy(PROXY, verify_twice=False, check_retries=1, timeout=3)
             _, kwargs = mock_check.call_args
@@ -164,7 +164,7 @@ class TestCheckProxy:
 
         with patch("crucible_proxy.checker._single_check", side_effect=side_effect), \
              patch("crucible_proxy.checker._resolve_check_url", return_value=None), \
-             patch("crucible_proxy.checker._detect_anonymity", return_value=(None, Anonymity.UNKNOWN)), \
+             patch("crucible_proxy.checker._detect_anonymity", return_value=({"country": None, "city": None, "asn": None, "isp": None}, Anonymity.UNKNOWN)), \
              patch("crucible_proxy.checker.time.sleep"):
             result = check_proxy(PROXY, verify_twice=True, check_retries=1)
 
