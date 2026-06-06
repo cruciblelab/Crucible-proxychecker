@@ -32,6 +32,6 @@ The fetcher handles `scheme://`, `user@host:port`, and `#` comments automaticall
 
 1. Update `version` in `pyproject.toml` and `crucible_proxy/__init__.py`
 2. Add an entry in `CHANGELOG.md`
-3. `git tag v7.0.0 && git push origin v7.1.0`
+3. `git tag vX.Y.Z && git push origin vX.Y.Z`
 
 CI will build and publish to PyPI automatically via the OIDC trusted publisher.
